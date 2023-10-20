@@ -11,7 +11,7 @@ from ping360_sonar_py.sonar_interface import SonarInterface, Sector
 
 class Ping360_node(Node):
     def __init__(self):
-        super().__init__('ping360')
+        super().__init__('ping360_node')
         # parameters to be declared, will be parsed later
         # several values mean [default,lower, upper, [step]]
         parameters = {

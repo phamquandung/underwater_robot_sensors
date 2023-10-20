@@ -1,0 +1,27 @@
+<launch>
+    <node pkg="tf2_ros" exec="static_transform_publisher" name="transform_sonar_frame" args="0 0 0 0 0 0 1 map frame" />
+    <node pkg="ping360_sonar_py" exec="ping360" name="ping360_node">
+        <param name="device" value="/dev/ttyUSB0"/>
+        <param name="baudrate" value="115200"/>
+        <param name="fallback_emulated" value="True"/>
+        <param name="connection_type" value="serial"/>
+        <param name="udp_address" value="0.0.0.0"/>
+        <param name="udp_port" value="12345"/>
+        <param name="gain" value="0"/>
+        <param name="frequency" value="740"/>
+        <param name="angle_sector" value="360"/>
+        <param name="scan_threshold" value="200"/>
+        <param name="angle_step" value="1"/>
+        <param name="image_size" value="500"/>
+        <param name="image_rate" value="100"/>
+        <param name="speed_of_sound" value="1500"/>
+        <param name="range_max" value="2"/>
+        <param name="publish_image" value="True"/>
+        <param name="publish_scan" value="True"/>
+        <param name="publish_echo" value="False"/>
+    </node>
+    <node pkg="image_view" exec="image_view" name="image_view">
+        <remap from="/image" to="/scan_image"/>
+    </node>
+    <node name="rvizvisualisation" pkg="rviz2" exec="rviz2" output="log" args="-d $(find-pkg-share ping360_sonar_py)/../cfg/rviz/ping360_rviz_config.rviz" />
+</launch>

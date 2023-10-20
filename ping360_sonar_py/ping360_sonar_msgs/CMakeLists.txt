@@ -9,6 +9,10 @@ find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+# install(DIRECTORY launch
+#   DESTINATION share/${PROJECT_NAME}
+# )
+
 rosidl_generate_interfaces(${PROJECT_NAME} "msg/SonarEcho.msg" DEPENDENCIES std_msgs)
 
 ament_package()

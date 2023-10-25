@@ -1,0 +1,17 @@
+<launch>
+    <node pkg="underwater_gps_py" exec="underwater_gps" name="underwater_gps_node">
+        <param name="ros_rate" value="2.0"/>
+        <param name="waterlinked_url" value="http://demo.waterlinked.com"/> 
+        <param name="use_ros_based_frame_transform" value="False"/>
+        <param name="ros_rate_topside" value="10.0"/>
+        <param name="use_ros_based_locator_relative_position" value="False"/>
+        <param name="waterlinked_api_external_master_path" value="/api/v1/external/master"/>
+        <param name="wl_api_use_external_gps_fixed" value="False"/>
+        <param name="wl_api_use_external_heading_fixed" value="False"/>
+        <param name="external_gps_fixed_lat" value="0.0"/>
+        <param name="external_gps_fixed_lon" value="0.0"/>
+        <param name="external_heading_fixed_value" value="0.0"/>
+        <param name="wl_api_use_external_gps_measurements" value="True"/>
+        <param name="wl_api_use_external_heading_measurements" value="True"/>
+    </node>
+</launch>

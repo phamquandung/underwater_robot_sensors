@@ -31,29 +31,32 @@ class UnderwaterGPS_node(Node):
         parameters = {
             'ros_rate': 2.0,
             'ros_rate_topside': 10.0,
-            'waterlinked_url': '',
-            'use_ros_based_frame_transform': True,
-            'waterlinked_api_external_master_path': '',
+            'waterlinked_url': 'http://demo.waterlinked.com',
+            'use_ros_based_frame_transform': False,
+            'waterlinked_api_external_master_path': '/api/v1/external/master',
             'wl_api_use_external_gps_fixed': False,
             'external_gps_fixed_lat': 0.0,
             'external_gps_fixed_lon': 0.0,
-            'wl_api_use_external_gps_measurements': False,
+            'wl_api_use_external_gps_measurements': True,
             'wl_api_use_external_heading_fixed': False,
             'external_heading_fixed_value': 0.0,
-            'wl_api_use_external_heading_measurements': False,
+            'wl_api_use_external_heading_measurements': True,
             'use_ros_based_locator_relative_position': False
         }
         for name, value in parameters.items():
             self.declare_parameter(name, value)
-        
-        # init gps interface
-        self.gps = GPSInteraface(self.declare_parameter('url', '192.168.2.94').value)
 
         # configure from given params
         self.configureFromParams()     
         self.add_on_set_parameters_callback(self.cb_params)
         self.init_properties()
+        # init gps interface
+        print(f'Waterlinked URL: {self.WATERLINKED_URL}')
+        self.gps = GPSInteraface(self.WATERLINKED_URL)
         self.timer = self.create_timer(1.0/self.get_parameter('ros_rate').value, self.timer_callback)
+        debug = False
+        if debug:
+            self.run_tests()
     
     def init_subscribers(self):
         print("Initializing ROS subscribers")
@@ -243,7 +246,9 @@ class UnderwaterGPS_node(Node):
         self.locator_wrt_base_relative_z = msg.vector.z
     
     def get_waterlinked_measuremets_global(self):
-        pos = self.get_global_position(self.WATERLINKED_URL)
+        # Debug
+        # pos = self.gps.get_global_position(self.WATERLINKED_URL)
+        pos = self.gps.get_global_position()
         if (pos and not self.USE_ROS_BASED_FRAME_TRANSFORM):
             self.locator_global_lat = pos["lat"]
             self.locator_global_lon = pos["lon"]
@@ -253,7 +258,9 @@ class UnderwaterGPS_node(Node):
         time_nanosec, time_sec = math.modf(time_)
         self.locator_rel_pos_time_new = time_sec + time_nanosec
         
-        data = self.get_acoustic_position(self.WATERLINKED_URL)
+        # Debug
+        # data = self.gps.get_acoustic_position(self.WATERLINKED_URL)
+        data = self.gps.get_acoustic_position()
         if data:
             self.locator_wrt_base_relative_x = data["x"]
             self.locator_wrt_base_relative_y = data["y"]
@@ -261,6 +268,17 @@ class UnderwaterGPS_node(Node):
 
     def transform_relative_to_ned_position(self):
         if self.USE_ROS_BASED_FRAME_TRANSFORM:
+            # Debug
+            # print(hasattr(self, 'topside_external_pos_north'))
+            # print(hasattr(self, 'topside_external_pos_east'))
+            # print(hasattr(self, 'topside_external_pos_down'))
+            # print(hasattr(self, 'topside_external_heading_rad'))
+            # print(hasattr(self, 'topside_external_pitch_rad'))
+            # print(hasattr(self, 'topside_external_roll_rad'))
+            # print(hasattr(self, 'locator_wrt_base_relative_x'))
+            # print(hasattr(self, 'locator_wrt_base_relative_y'))
+            # print(hasattr(self, 'locator_wrt_base_relative_z'))
+            
             if (hasattr(self, 'topside_external_pos_north') and hasattr(self, 'topside_external_pos_east') and
                 hasattr(self, 'topside_external_pos_down') and hasattr(self, 'topside_external_heading_rad') and
                 hasattr(self, 'topside_external_pitch_rad') and hasattr(self, 'topside_external_roll_rad') and
@@ -364,8 +382,74 @@ class UnderwaterGPS_node(Node):
         self.transform_relative_to_ned_position()
         self.transform_ned_to_global_position()
         self.publish_all_waterlinked_variables() 
+        
+    def run_tests(self):
+        # Test external GPS+heading measurements HTTP request sending
+        if (self.WL_API_USE_EXTERNAL_HEADING_MEASUREMENTS or
+                self.WL_API_USE_EXTERNAL_GPS_MEASUREMENTS):
+            print("Testing WaterLinked API external GPS+heading PUT requests")
+            for iter in range(5):
+                self.topside_external_lat_deg_dec = iter*10
+                self.topside_external_lon_deg_dec_dec = iter*10
+                self.topside_external_heading_deg = iter*360/5
+                url = self.WATERLINKED_URL + self.WATERLINKED_API_EXTERNAL_MASTER_PATH
+                headers = CaseInsensitiveDict()
+                headers["accept"] = "application/vnd.waterlinked.operation_response+json"
+                headers["Content-Type"] = "application/json"
+                data = dict(lat=self.topside_external_lat_deg_dec,
+                            lon=self.topside_external_lon_deg_dec_dec, orientation=self.topside_external_heading_deg)
+                print(data)
+                try:
+                    resp = requests.put(url, json=data, timeout=1.0/self.RATE)
+                    print(resp.status_code)
+                    print(resp.reason)
+                except requests.exceptions.RequestException as exc:
+                    print(colored("Exception occured {}".format(exc), "red"))
+                time.sleep(2)
 
-if __name__ == "__main__":
+        # Test frame transforms
+        n = 10000.0*np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        e = n
+        d = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        r = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        p = r
+        y = np.array([0.0, math.pi/4.0, math.pi/2.0, math.pi, math.pi*5/4.0, math.pi *
+                      3/2.0, 0.0, math.pi/4.0, math.pi/2.0, math.pi, math.pi*5/4.0, math.pi*3/2.0])
+        lat0 = np.array([43.0, 43.0, 43.0, 43.0, 43.0, 43.0,
+                         43.0, 43.0, 43.0, 43.0, 43.0, 43.0])
+        lon0 = lat0/43.0*16.0
+        x_rel = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                          1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        y_rel = x_rel
+        z_rel = x_rel*5.0
+        for iter in range(len(n)):
+            self.topside_external_pos_north = n[iter]
+            self.topside_external_pos_east = e[iter]
+            self.topside_external_pos_down = d[iter]
+
+            self.topside_external_roll_rad = r[iter]
+            self.topside_external_pitch_rad = p[iter]
+            self.topside_external_heading_rad = y[iter]
+
+            self.topside_external_origin_lat = lat0[iter]
+            self.topside_external_origin_lon = lon0[iter]
+            self.topside_external_origin_h = 0.0
+
+            self.locator_wrt_base_relative_x = x_rel[iter]
+            self.locator_wrt_base_relative_y = y_rel[iter]
+            self.locator_wrt_base_relative_z = z_rel[iter]
+
+            self.transform_relative_to_ned_position()
+            self.transform_ned_to_global_position()
+            print(iter+1)
+            print(self.locator_pos_ned)
+            print(self.locator_global_lat)
+            print(self.locator_global_lon)
+
+def main(args=None):
     print("Started")
     rclpy.init()
 
@@ -381,3 +465,6 @@ if __name__ == "__main__":
 
     node.destroy_node()
     rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()

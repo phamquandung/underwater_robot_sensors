@@ -1,0 +1,18 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/pqdung/ros2_workspace/install/underwater_gps_py/lib/python3.10/site-packages",
+        "/home/pqdung/ros2_workspace/install/ping360_sonar_py/lib/python3.10/site-packages",
+        "/home/pqdung/ros2_workspace/install/ping360_sonar_msgs/local/lib/python3.10/dist-packages",
+        "/home/pqdung/waterlinked-uwgpsg2-ros2-pkg/install/uwgpsg2_ros2_interface/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/pqdung/ros2_workspace/install/underwater_gps_py/lib/python3.10/site-packages",
+        "/home/pqdung/ros2_workspace/install/ping360_sonar_py/lib/python3.10/site-packages",
+        "/home/pqdung/ros2_workspace/install/ping360_sonar_msgs/local/lib/python3.10/dist-packages",
+        "/home/pqdung/waterlinked-uwgpsg2-ros2-pkg/install/uwgpsg2_ros2_interface/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

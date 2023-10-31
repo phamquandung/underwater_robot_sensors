@@ -10,8 +10,10 @@
 
 enum class StereoCam: int
 {
-    LEFT = 0,
-    RIGHT = 1
+    LEFT_FOWARD,
+    RIGHT_FOWARD,
+    LEFT_DOWN,
+    RIGHT_DOWN
 };
 
 void GetImageAndPublish(std::vector<image_transport::CameraPublisher>& publisher, HikCam & camera, int flag, rclcpp::Time t){
@@ -44,19 +46,19 @@ int main(int argc, char **argv){
         return -1;
     }
 
-    std::string stopic[2] = {"left", "right"};
+    std::string stopic[4] = {"left_forward", "right_forward", "left_down", "right_down"};
     //********** rosnode init **********/
     rclcpp::init(argc, argv);
     auto node_camera_stereo = rclcpp::Node::make_shared("stereo_cam");
-    bool btrigger_fisheyes = false;
-    int camera_rate = 30;
+    bool btrigger_fisheyes = true;
+    int camera_rate = 10;
     node_camera_stereo->declare_parameter("btrigger_fisheyes", btrigger_fisheyes);
     node_camera_stereo->declare_parameter("camera_rate", camera_rate);
 
     image_transport::ImageTransport main_cam_image(node_camera_stereo);
     std::vector<image_transport::CameraPublisher> image_publishers;
     for (int i = 0; i < MAX_CAMERA_NUM; ++i){
-        image_publishers.push_back(main_cam_image.advertiseCamera("/stereo_cam/"+stopic[i], 1000));
+        image_publishers.push_back(main_cam_image.advertiseCamera("/stereo_cam"+stopic[i], 1000));
     }
 
     //********** 10 Hz        **********/
@@ -82,7 +84,7 @@ int main(int argc, char **argv){
         else
         {
             const auto tp_1 = std::chrono::steady_clock::now();
-            GetImageAndPublish(image_publishers, mycamRig, (int)StereoCam::LEFT, node_camera_stereo->now());
+            GetImageAndPublish(image_publishers, mycamRig, (int)StereoCam::RIGHT_FOWARD, node_camera_stereo->now());
             const auto tp_2 = std::chrono::steady_clock::now();
             auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2 - tp_1).count();
             // ROS_INFO("capturing image #1 taking: %f", track_time);

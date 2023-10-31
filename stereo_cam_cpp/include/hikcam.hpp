@@ -8,7 +8,7 @@
 
 #include "MvCameraControl.h"
 
-#define MAX_CAMERA_NUM     1 // 1 for monocular, 2 for stereo
+#define MAX_CAMERA_NUM     4 // 1 for monocular, 2 for stereo, 4 for stereo down-facing and stereo foward camera
 
 
 class HikCam

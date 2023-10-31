@@ -1,0 +1,8 @@
+<launch>
+    <!-- Launch IMU -->
+    <include file="$(find-pkg-share serial_imu)/launch/imu_launch.xml" />
+    <!-- Launch 4 cameras -->
+    <include file="$(find-pkg-share stereo_cam_cpp)/launch/stereo_cam_launch.xml" />
+    <!-- Launch SONAR -->
+    <include file="$(find-pkg-share ping360_sonar_py)/launch/ping360_sonar_launch.xml" />
+</launch>

@@ -35,7 +35,12 @@ ament_target_dependencies(${PROJECT_NAME} rclcpp rclpy std_msgs
 
 install(TARGETS
   ${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 target_link_libraries(${PROJECT_NAME}
    ${OpenCV_LIBRARIES}

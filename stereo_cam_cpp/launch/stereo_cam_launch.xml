@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="stereo_cam_cpp" exec="stereo_cam_cpp" name="stereo_cam_cpp_node"/>  
+</launch>
